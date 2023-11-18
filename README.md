@@ -33,199 +33,199 @@ TPC invent.pas /B /$D-
     <td>Description</td>
   </tr>
   <tr>
-    <td>BIOS_PRN.PAS</td>
+    <td><b>BIOS_PRN.PAS</b></td>
     <td>Gestionnaire BIOS de l'imprimante.</td>
   </tr>
   <tr>
-     <td>ECRMONO.PAS</td>
+     <td><b>ECRMONO.PAS</b></td>
      <td>Gestionnaire monochrome de l'‚cran (maintenant adapter au couleur).</td>
   </tr>
   <tr>
-    <td>ENTETE.INV</td>
+    <td><b>ENTETE.INV</b></td>
     <td>Imprime l'entete des factures</td>
   </tr>
   <tr>
-    <td>EXTRA.INV</td>
+    <td><b>EXTRA.INV</b></td>
     <td>Inclassable, c'est divers...</td>
   </tr>
   <tr>
-    <td>FAC.INV</td> 
+    <td><b>FAC.INV</b></td> 
     <td>Imprime les factures.</td>
   </tr>
   <tr>
-    <td>FICHIER.PAS</td>
+    <td><b>FICHIER.PAS</b></td>
     <td>Gestionnaire des fichiers (par Handle).</td>
   </tr>
   <tr>
-    <td>IAXLE.PAS</td>
+    <td><b>IAXLE.PAS</b></td>
     <td>Gestionnaire des piŠces de l'axle.</td>
   </tr>
   <tr>
-    <td>ICHAINE.PAS</td> 
+    <td><b>ICHAINE.PAS</b></td> 
     <td>Gestionnaire des chaines de caractères.</td>
   </tr>
   <tr>
-    <td>ICLAVIER.PAS</td>
+    <td><b>ICLAVIER.PAS</b></td>
     <td>Gestionnaire du clavier (bas‚ sur le BIOS, il ‚mule le DOS...)</td>
   </tr>
   <tr>
-    <td>ICLIENT.PAS</td> 
+    <td><b>ICLIENT.PAS</b></td> 
     <td>Gérent tout ce qui a rapport au client...</td>
   </tr>
   <tr>
-    <td>ICOWL.PAS</td>
+    <td><b>ICOWL.PAS</b></td>
     <td>Gestionnaire des pièces du cowl.</td>
   </tr>
   <tr>
-    <td>IDATA.PAS</td>
+    <td><b>IDATA.PAS</b></td>
     <td>Gestionnaire des donn‚es du programme inventaire.</td>
   </tr>
   <tr>
-    <td>IDERR.PAS</td>
+    <td><b>IDERR.PAS</b></td>
     <td>Gestionnaire des pièces du derrière du véhicule.</td>
   </tr>
   <tr>
-    <td>IDESCR.PAS</td> 
+    <td><b>IDESCR.PAS</b></td> 
     <td>Entrée des descriptions</td>
   </tr>
   <tr>
-    <td>IDESMOD.PAS</td>
+    <td><b>IDESMOD.PAS</b></td>
     <td>Modification des descriptions</td>
   </tr>
   <tr>
-    <td>IDEVANT.PAS</td>
-    <td>Gestionnaire des piŠces de devant du véhicule.</td>
+    <td><b>IDEVANT.PAS</b></td>
+    <td>Gestionnaire des pièces de devant du véhicule.</td>
   </tr>
   <tr>
-    <td>IEFFACE.PAS</td> 
+    <td><b>IEFFACE.PAS</b></td> 
     <td>Efface du fichier se que tu lui demande...</td>
   </tr>
   <tr>
-    <td>IENREG.PAS</td> 
-    <td>Traite les records pour les mettres sur disque.</td>
+    <td><b>IENREG.PAS</b></td> 
+    <td>Traite les enregistrements pour les mettres sur disque.</td>
   </tr>
   <tr>
-    <td>IFICHIER.PAS</td> 
+    <td><b>IFICHIER.PAS</b></td> 
     <td>Complementaire a FICHIER.PAS</td>
   </tr>
   <tr>
-    <td>IFREINS.PAS</td>
+    <td><b>IFREINS.PAS</b></td>
     <td>Gestionnaire des piŠces du freins.</td>
   </tr>
   <tr>
-      <td>IGETFILE.PAS</td> 
+      <td><b>IGETFILE.PAS</b></td> 
       <td>Affiche les pieces que vous souhaitez.</td>
   </tr>
   <tr>
-    <td>IMENU.PAS</td>
+    <td><b>IMENU.PAS</b></td>
     <td>Affiche les menus.</td>
   </tr>
   <tr>
-    <td>IMODIFIE.PAS</td> 
+    <td><b>IMODIFIE.PAS</b></td> 
     <td>Fait des modifications dans les enregistrements.</td>
   </tr>
   <tr>
-    <td>IMOTOR.PAS</td>
-    <td>Gestionnaire des piŠces du moteur.</td>
+    <td><b>IMOTOR.PAS</b></td>
+    <td>Gestionnaire des pièces du moteur.</td>
   </tr>
   <tr>
-    <td>IMPRICLI.INV</td>
+    <td><b>IMPRICLI.INV</b></td>
     <td>Imprime les clients</td>
   </tr>
   <tr>
-      <td>INTRO.PAS</td>
+      <td><b>INTRO.PAS</b></td>
       <td>Présentation pitoresque du programme</td>
   </tr>
   <tr>
-    <td>INVENT.PAS</td> 
+    <td><b>INVENT.PAS</b></td> 
     <td>Le coeur du programme (MAIN).</td>
   </tr>
   <tr>
-    <td>IPASSWOR.PAS</td>
+    <td><b>IPASSWOR.PAS</b></td>
     <td>Gérent les mots de passe.</td>
   </tr>
   <tr>  
-    <td>IPCEMOT.PAS</td> 
+    <td><b>IPCEMOT.PAS</b></td> 
     <td>Gestionnaire des pièces du moteur.</td>
   </tr>
   <tr>    
-    <td>IPNEUS.PAS</td> 
+    <td><b>IPNEUS.PAS</b></td> 
     <td>Gestionnaire des pneus</td>
   </tr>
   <tr>
-      <td>IPORTE.PAS</td>
+      <td><b>IPORTE.PAS</b></td>
       <td>Gestionnaire des portes</td>
   </tr>
   <tr>
-    <td>IQUEST.PAS</td> 
+    <td><b>IQUEST.PAS</b></td> 
     <td>Gestionnaire des questions en tout genre.</td>
   </tr>
   <tr>
-    <td>IRAPPORT.PAS</td> 
+    <td><b>IRAPPORT.PAS</b></td> 
     <td>Donne un bref rapport sur imprimante.</td>
   </tr>
   <tr>
-    <td>ISLCPCE.PAS</td>
+    <td><b>ISLCPCE.PAS</b></td>
     <td>Sélection des pièces.</td>
   </tr>
   <tr>
-    <td>ISUSPENS.PAS</td>
+    <td><b>ISUSPENS.PAS</b></td>
     <td>Gérent les pièces de la suspension.</td>
   </tr>
   <tr>
-    <td>ITRANS.PAS</td>
+    <td><b>ITRANS.PAS</b></td>
     <td>Gérent les pièces de la transmission.</td>
   </tr>
   <tr>
-    <td>IVENTE.PAS</td> 
+    <td><b>IVENTE.PAS</b></td> 
     <td>Gérent les ventes.</td>
   </tr>
   <tr>
-    <td>IVISUEL.PAS</td> 
+    <td><b>IVISUEL.PAS</b></td> 
     <td>Gestionnaire secondaire de l'écran (ou gadget).</td>
   </tr>
   <tr>
-    <td>LAC.INV</td>
+    <td><b>LAC.INV</b></td>
     <td>Lecture des anciens clients.</td>
   </tr>
   <tr>
-    <td>LAF.INV</td>
+    <td><b>LAF.INV</b></td>
     <td>Lecture des anciens factures.</td>
   </tr>
   <tr>
-    <td>LTC.INV</td>
+    <td><b>LTC.INV</b></td>
     <td>Lit tout les clients.</td>
   </tr>
   <tr>
-    <td>NCLIENT.INV</td>
+    <td><b>NCLIENT.INV</b></td>
     <td>Nouveau clients.</td>
   </tr>
   <tr>
-    <td>NOFACT.INV</td>
+    <td><b>NOFACT.INV</b></td>
     <td>Pas de facture.</td>
   </tr>
   <tr>
-    <td>PIECEMOT.INV</td>
+    <td><b>PIECEMOT.INV</b></td>
     <td>Fixe Piece moteur.</td>
   </tr>
   <tr>
-      <td>SAC.INV</td> 
+      <td><b>SAC.INV</b></td> 
       <td>Sauve ancien client</td>
   </tr>
   <tr>
-    <td>SAF.INV</td>
+    <td><b>SAF.INV</b></td>
     <td>Sauve ancien facture</td>
   </tr>
   <tr>
-    <td>SPEED.PAS</td>
+    <td><b>SPEED.PAS</b></td>
     <td>Petit truct pour avoir le contrôle absolute de la machine</td>
   </tr>
   <tr>
-    <td>TSTPRN.PAS</td>
+    <td><b>TSTPRN.PAS</b></td>
     <td>Teste si l'imprimante est prête</td>
   </tr>
   <tr>
-    <td>VENTE.INV</td>
+    <td><b>VENTE.INV</b></td>
     <td>Pour les ventes</td>
   </tr>
 </table>

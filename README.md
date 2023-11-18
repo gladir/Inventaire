@@ -20,6 +20,11 @@ Bien qu'à la base il était prévu de fonctionner sur une carte monochrome text
 Lors de la compilation l'ordinateur doit disposer d'un minimum de 620Ko de mémoire libre et du Turbo Pascal 6. Le programme a été concu au départ sur un XT 10Mhz, CGA d'ATI, 640Ko, Disque dur 32 Megs et par la suite sur XT 10Mhz, SVGA de IT-VGA2 (Tseng Labs 4000) avec un 1 Meg de mémoire vidéo. Mais la véritable machine sur lequel il a été programmer a été sur un AT 286-12Mhz 1Meg, carte vidéo CGA d'ATI, modèle portable, Disque dur 40 Megs a cause des complications de manque de mémoire. Dut au immense problème de RAM et d'espace disque insuffisant, je conseillerais de le compiler sur un machine disposant de 2 Meg de mémoire (travaillez pour fonctionner efficacement) en plus d'un disque dur disposant de 3 Meg de libre (pour les code source, unité et 
 swapping).
 
+Voici la ligne de commande pour effectué la compilation :
+<code>
+TPC invent.pas /B /$D-
+</code>
+
 <h3>DETAIL SUR LES FICHIERS</h3>
 
 <table>

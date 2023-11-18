@@ -5,7 +5,7 @@ Gestion d'un inventaire de cimetière de voitures écrit en Turbo Pascal 6
 
 C'est un logiciel de gestion de cimetière de voitures que j'ai développé lorsque j'avais 17 ans.  Il est divise en 10 partie principal qui se répartise 92 pièces avec des petits détailles divers. En plus de cela, il y a aussi les pneus, caps de roue et divers pièces banal. Il est capabable d'ajouter, modifier, effacer, consultation et vente des pièces. Toute c'est opération sont accessible a partir d'un menu déroulant.
 
-![Uploading image.png…]()
+![image](https://github.com/gladir/Inventaire/assets/11842176/f79da549-1b0d-4148-9555-3d024b53bf0f)
 
 <h3>MOTS DE PASSE</h3>
 

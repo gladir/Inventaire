@@ -38,11 +38,11 @@ TPC invent.pas /B /$D-
   </tr>
   <tr>
      <td><b>ECRMONO.PAS</b></td>
-     <td>Gestionnaire monochrome de l'‚cran (maintenant adapter au couleur).</td>
+     <td>Gestionnaire monochrome de l'écran (maintenant adapter au couleur).</td>
   </tr>
   <tr>
     <td><b>ENTETE.INV</b></td>
-    <td>Imprime l'entete des factures</td>
+    <td>Imprime l'entête des factures</td>
   </tr>
   <tr>
     <td><b>EXTRA.INV</b></td>
@@ -58,7 +58,7 @@ TPC invent.pas /B /$D-
   </tr>
   <tr>
     <td><b>IAXLE.PAS</b></td>
-    <td>Gestionnaire des piŠces de l'axle.</td>
+    <td>Gestionnaire des pièces de l'axle.</td>
   </tr>
   <tr>
     <td><b>ICHAINE.PAS</b></td> 
@@ -66,7 +66,7 @@ TPC invent.pas /B /$D-
   </tr>
   <tr>
     <td><b>ICLAVIER.PAS</b></td>
-    <td>Gestionnaire du clavier (bas‚ sur le BIOS, il ‚mule le DOS...)</td>
+    <td>Gestionnaire du clavier (basé sur le BIOS, il émule le DOS...)</td>
   </tr>
   <tr>
     <td><b>ICLIENT.PAS</b></td> 

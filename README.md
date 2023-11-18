@@ -234,6 +234,6 @@ TPC invent.pas /B /$D-
 
 Lors du lancement de l'executable, vous devez disposez d'un minimum de 400 Ko.
 
-Il support les cartes CGA d'ATI, EGA, VGA, SVGA. La machine qui le fait fonctionner doit avoir des cartes vid‚o 100% compatible au standard d'IBM.
+Il support les cartes CGA d'ATI, EGA, VGA, SVGA. La machine qui le fait fonctionner doit avoir des cartes vidéo 100% compatible au standard d'IBM.
 
 Coté disque, il doit disposer d'un minimum de 100 Ko, si vous vous amusez avec les enregistrements, il peut alors grimper a des tailles maximal que permet le DOS.

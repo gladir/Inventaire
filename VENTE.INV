@@ -1,0 +1,481 @@
+(************************************************************************)
+(*                                                                      *)
+(*                         Inventaire Vente (Extra)                     *)
+(*                               1992/05/10                             *)
+(*                                                                      *)
+(* Description : þ Menu de gestion des ventes                           *)
+(*                                                                      *)
+(* Comprend    : þ Sa propre proc‚dure de demande du numero serie.      *)
+(*                                                                      *)
+(* Note        : þ Cette "INCLUDE" fait partie de l'unit‚ IVENTE        *)
+(*                 d'Inventaire 1.01.                                   *)
+(*                                                                      *)
+(************************************************************************)
+
+Procedure Vente(Menu:Byte);
+Const TailleEcran = 4000;
+Var Touche : Word;
+
+ Procedure DerniereFacture; Forward;
+ Procedure Piece; Forward;
+
+ (*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+**+*+*+*+*+*+*)
+
+ Function ModeFacture:Byte;
+ Const X        = 29;
+       Y        = 9;
+       Position : Byte = 0;
+ Begin
+  FixeFormatSimple;
+  FixeCadrePlain(X,Y,X+26,Y+8,CoulMnu);
+  Ecrit(X+2,Y+2,'Mode facture',CoulMnu);
+  Ecrit(X+2,Y+4,'Facture sans nom',CoulMnu);
+  Ecrit(X+2,Y+5,'Facture avec nom client',CoulMnu);
+  Ecrit(X+2,Y+6,'Quitter',CoulMnu);
+  Repeat
+   BarSelecteHori(X+1,Y+4+Position,X+25,CoulSlc);
+   Touche := LitClavier;
+   BarSelecteHori(X+1,Y+4+Position,X+25,CoulMnu);
+   TraiteScanCode(Position,2,Touche);
+  Until (Touche = kbEnter);
+  If(Touche = kbEnter)Then ModeFacture := Position
+                      Else ModeFacture := 255;
+  BarSelecteHori(X+1,Y+4+Position,X+25,CoulSlc);
+ End;
+
+ (*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+**+*+*+*+*+*+*)
+
+ Procedure Piece;
+ Label Debut,V10,V20;
+ Const Couleur   = #3;
+       Multiplie = #4;
+ Type NumeroSerieType = String[20];
+ Var Reponse        : Byte;
+     Enregistrement : EnregistrementType;
+     TabExt         : Pointer;
+     Position       : Byte;
+     Temp           : Byte;
+     Numero         : NumeroSerieType;
+     Num            : LongInt;
+     Descr          : DescrType;
+     Facture        : FactureType;
+     PosNumero      : LongInt;
+     ReelPos        : LongInt;
+
+  (*+-+*+-+*+-+*+-+*+-+*+-+*+-+*+-+*+-+*+-+*+-+*+-+*+-+*+-+*+-+*+-+*+-+*)
+
+  Function NumeroSerie(Var Numero:NumeroSerieType):Byte;
+  Var Tableau : Pointer;
+      Escape  : Byte;
+      Chaine  : String;
+  Begin
+   NumeroSerie := 0;
+    { Pr‚paration ‚cran }
+   SauvegardeEcran(Tableau);
+   FixeFormatDouble;
+   FixeCadrePlain(20,10,71,14,CoulDcr);
+   EcritSpecial(22,12,Couleur+Chr(CoulDcr)+
+                      'Entrez le num‚ro de serie ['#4+#20' ]');
+    { Lecture du num‚ro du client }
+   FillChar(Numero,SizeOf(Numero),0);
+   FillChar(Chaine,SizeOf(Chaine),0);
+   Repeat
+    FixeLocalise(49,12,20,Chaine,Escape);
+    Numero := Maj(Chaine);
+    If(Escape = 1)Then
+    Begin
+     NumeroSerie := 1;
+     RestituteEcran(Tableau);
+     Exit;
+    End;
+   Until (Numero<>'');
+   RestituteEcran(Tableau);
+  End;
+
+ Begin { Main Piece }
+         Position := 0;
+         ReelPos  := 0; { Position dans le fichier ancienne facture }
+ Debut : BarMenu;
+         Tapiserie(TextureFont);
+         BarRemarque;
+         FixeFormatSimple;
+         MenuVente;
+         BarSelecteHori(51,2,66,CoulSlc);
+         Temp := NumeroSerie(Numero);
+         If(Temp = 1)Then Exit;
+         Descr.NumSerie := Numero;
+         FixeFormatSimple;
+         PosNumero := RechercheDescription(Descr,1);
+         If(PosNumero = -1)Then
+         Begin
+          MessageErreur('Erreur : Automobile introuvable!');
+          Goto Debut;
+         End;
+         ReturnEnregistrement(ReelPos,Enregistrement);
+         Position := _SelectePiece(51,3,Position);
+         BarSelecteHori(51+1,4+Position,51+15,CoulSlc);
+   V10 : Reponse := ChoisiePiece(52,5,Position,Enregistrement);
+          { Sauvegarde dans la liste }
+         Facture.NumSerie := Descr.NumSerie;
+         Facture.Modele   := Descr.Modele;
+         Facture.Couleur  := Descr.Couleur;
+         Facture.Milage   := Descr.Milage;
+         Facture.TPS      := 7;
+         Facture.TVQ      := 8;
+         With Enregistrement do
+         Begin
+          Case Position of
+                              { - --->> Devant <<--- - }
+           0 : With Devant do
+               Begin
+                If(AvantComplet.DevantComplet = 2)Then
+                Begin
+                 Facture.Prix    := AvantComplet.Prix;
+                 Facture.Cent    := AvantComplet.Cent;
+                 Facture.CodeArt := AvantComplet.Code;
+                 Facture.Descr   := 'Devant complet';
+                 AvantComplet.DevantComplet := 0;
+                 AvantComplet.Prix          := 0;
+                 AvantComplet.Cent          := 0;
+                 FillChar(AvantComplet.Localise,
+                          SizeOf(AvantComplet.Localise),0);
+                 FillChar(AvantComplet.Code,
+                          SizeOf(AvantComplet.Code),0);
+                End
+                 else
+                If(AvantComplet.DevantComplet = 1)Then
+                Begin
+                 Facture.Prix    := Prix[Reponse];
+                 Facture.Cent    := Cent[Reponse];
+                 Facture.CodeArt := Code[Reponse];
+                 Case Reponse of
+                   0 : Facture.Descr := 'Bumper';
+                   1 : Facture.Descr := 'Valance';
+                   2 : Facture.Descr := 'Grille';
+                   3 : Facture.Descr := 'Header panel';
+                   4 : Facture.Descr := 'Headlamp dor';
+                   5 : Facture.Descr := 'Headlamp';
+                   6 : Facture.Descr := 'Headlamp motor';
+                   7 : Facture.Descr := 'Parklamp';
+                   8 : Facture.Descr := 'Condenseur d''air';
+                   9 : Facture.Descr := 'Radiateur';
+                  10 : Facture.Descr := 'Fan radiateur';
+                  11 : Facture.Descr := 'Aile gauche';
+                  12 : Facture.Descr := 'Aile droite';
+                  13 : Facture.Descr := 'Frame';
+                  14 : Facture.Descr := 'Frame rail';
+                  15 : Facture.Descr := 'Capot';
+                 End;
+                 Facture.Descr := 'Devant, ' + Facture.Descr;
+                 Actif[Reponse] := 0;
+                 Prix[Reponse]  := 0;
+                 Cent[Reponse]  := 0;
+                 FillChar(Code[Reponse],SizeOf(Code[Reponse]),0);
+                 FillChar(Pos[Reponse],SizeOf(Pos[Reponse]),0);
+                End;
+               End;
+                                 { - --->> Cowl <<--- - }
+           1 : With Cowl do
+               Begin
+                Facture.Prix    := DataPrix[Reponse];
+                Facture.Cent    := DataCent[Reponse];
+                Facture.CodeArt := DataCode[Reponse];
+                Case Reponse of
+                 0 : Facture.Descr := 'Windshield';
+                 1 : Facture.Descr := 'Dash';
+                 2 : Facture.Descr := 'Spedometre';
+                 3 : Facture.Descr := 'Radio';
+                 4 : Facture.Descr := 'Combo swich';
+                 5 : Facture.Descr := 'Ignition swich';
+                 6 : Facture.Descr := 'Radiateur chaufferette';
+                 7 : Facture.Descr := 'Moteur chaufferette';
+                 8 : Facture.Descr := 'Moteur whiper';
+                 9 : Facture.Descr := 'Whiper transmission';
+                End;
+                Facture.Descr := 'Cowl, ' + Facture.Descr;
+                DataActif[Reponse] := 0;
+                DataPrix[Reponse]  := 0;
+                DataCent[Reponse]  := 0;
+                FillChar(DataCode[Reponse],SizeOf(DataCode[Reponse]),0);
+                FillChar(DataPos[Reponse],SizeOf(DataPos[Reponse]),0);
+               End;
+                                 { - --->> Porte <<--- - }
+           2 : With Porte do
+               Begin
+                Facture.Prix    := Prx[Reponse];
+                Facture.Cent    := Cnt[Reponse];
+                Facture.CodeArt := Code[Reponse];
+                Case Reponse of
+                 0 : Facture.Descr := 'Avant gauche';
+                 1 : Facture.Descr := 'Avant droite';
+                 2 : Facture.Descr := 'Arriere gauche';
+                 3 : Facture.Descr := 'Arriere droite';
+                End;
+                If(Ass = 1)Then
+                Begin
+                 Facture.Descr := 'Porte assemble, ' + Facture.Descr;
+                End
+                 else
+                Facture.Descr := 'Porte desassemble, ' + Facture.Descr;
+                Actif[Reponse] := 0;
+                Prx[Reponse]  := 0;
+                Cnt[Reponse]  := 0;
+                FillChar(Code[Reponse],SizeOf(Code[Reponse]),0);
+                FillChar(Loc[Reponse],SizeOf(Loc[Reponse]),0);
+               End;
+                                 { - --->> Derriere <<--- - }
+           3 : With Derriere do
+               Begin
+                If(DataDerriereComplete.DerriereComplete = 2)Then
+                Begin
+                 Facture.Prix    := DataDerriereComplete.Prix;
+                 Facture.Cent    := DataDerriereComplete.Cent;
+                 Facture.CodeArt := DataDerriereComplete.Code;
+                 Facture.Descr   := 'Derriere complet';
+                 DataDerriereComplete.DerriereComplete := 0;
+                 DataDerriereComplete.Prix             := 0;
+                 DataDerriereComplete.Cent             := 0;
+                 FillChar(DataDerriereComplete.Code,
+                          SizeOf(DataDerriereComplete.Code),0);
+                 FillChar(DataDerriereComplete.Localise,
+                          SizeOf(DataDerriereComplete.Localise),0);
+                End
+                 else
+                If(DataDerriereComplete.DerriereComplete = 1)Then
+                Begin
+                 Facture.Prix    := DataPrix[Reponse];
+                 Facture.Cent    := DataCent[Reponse];
+                 Facture.CodeArt := DataCode[Reponse];
+                 Case Reponse of
+                   0 : Facture.Descr := 'Toit';
+                   1 : Facture.Descr := 'Quarter panel';
+                   2 : Facture.Descr := 'Quarter glass';
+                   3 : Facture.Descr := 'Back glass';
+                   4 : Facture.Descr := 'Valise';
+                   5 : Facture.Descr := 'Haillon';
+                   6 : Facture.Descr := 'Tank a gaz';
+                   7 : Facture.Descr := 'Rear finish panel';
+                   8 : Facture.Descr := 'Tailgate';
+                   9 : Facture.Descr := 'Tail Lite';
+                  10 : Facture.Descr := 'Bumper';
+                  11 : Facture.Descr := 'Boite a camion';
+                 End;
+                 Facture.Descr := 'Derriere, ' + Facture.Descr;
+                 DataActif[Reponse] := 0;
+                 DataPrix[Reponse]  := 0;
+                 DataCent[Reponse]  := 0;
+                 FillChar(DataPos[Reponse],SizeOf(DataPOs[Reponse]),0);
+                 FillChar(DataCode[Reponse],SizeOf(DataCode[Reponse]),0);
+                End;
+               End;
+                                 { - --->> Moteur <<--- - }
+           4 : With Moteur do
+               Begin
+                If(MoteurComplet.MoteurComplet = 2)Then
+                Begin
+                 Facture.Prix    := MoteurComplet.Prix;
+                 Facture.Cent    := MoteurComplet.Cent;
+                 Facture.CodeArt := MoteurComplet.Code;
+                 Facture.Descr   := 'Moteur assemble';
+                 MoteurComplet.MoteurComplet := 0;
+                 MoteurComplet.Prix          := 0;
+                 MoteurComplet.Cent          := 0;
+                 FillChar(MoteurComplet.Localise,
+                          SizeOf(MoteurComplet.Localise),0);
+                 FillChar(MoteurComplet.Code,
+                          SizeOf(MoteurComplet.Code),0);
+                End
+                 else
+                If(MoteurComplet.MoteurComplet = 1)Then
+                Begin
+                 Facture.Prix    := Prix[Reponse];
+                 Facture.Cent    := Cent[Reponse];
+                 Facture.CodeArt := Code[Reponse];
+                 Case Reponse of
+                  0 : Facture.Descr := 'Cam shaft';
+                  1 : Facture.Descr := 'Tete';
+                  2 : Facture.Descr := 'Timing couer';
+                  3 : Facture.Descr := 'Pane huile';
+                  4 : Facture.Descr := 'Carburateur';
+                  5 : Facture.Descr := 'Injection';
+                  6 : Facture.Descr := 'Pompe a gaz';
+                  7 : Facture.Descr := 'Pompe a eau';
+                  8 : Facture.Descr := 'Manifault exhaust';
+                  9 : Facture.Descr := 'Manifault intake';
+                 End;
+                 Facture.Descr := 'Moteur, ' + Facture.Descr;
+                 Actif[Reponse] := 0;
+                 Prix[Reponse]  := 0;
+                 Cent[Reponse]  := 0;
+                 FillChar(Pos[Reponse],SizeOf(Pos[Reponse]),0);
+                 FillChar(Code[Reponse],SizeOf(Code[Reponse]),0);
+                End;
+               End;
+                        { - --->> Piece ratache au Moteur <<--- - }
+           5 : With PieceMoteur do
+               Begin
+                Facture.Prix    := Prix[Reponse];
+                Facture.Cent    := Cent[Reponse];
+                Facture.CodeArt := Code[Reponse];
+                Case Reponse of
+                 0 : Facture.Descr := 'Intercooler';
+                 1 : Facture.Descr := 'Oil cooler';
+                 2 : Facture.Descr := 'Turbine';
+                 3 : Facture.Descr := 'Pompe injection';
+                 4 : Facture.Descr := 'Module electronique';
+                 5 : Facture.Descr := 'Alternateur';
+                 6 : Facture.Descr := 'Starter';
+                 7 : Facture.Descr := 'Distributeur';
+                 8 : Facture.Descr := 'Compresseur air conditionne';
+                 9 : Facture.Descr := 'Bindes poulies';
+                End;
+                Facture.Descr := 'Piece ratache au moteur, ' + Facture.Descr;
+                Actif[Reponse] := 0;
+                Prix[Reponse]  := 0;
+                Cent[Reponse]  := 0;
+                FillChar(Loc[Reponse],SizeOf(Loc[Reponse]),0);
+                FillChar(Code[Reponse],SizeOf(Code[Reponse]),0);
+               End;
+                              { - --->> Transmission <<--- - }
+           6 : With Trans do
+               Begin
+                If(Ass = 2)Then
+                Begin
+                 Facture.Prix    := Prix[0];
+                 Facture.Cent    := Cent[0];
+                 Facture.CodeArt := Code[0];
+                 Facture.Descr   := 'Transmission assemble';
+                 Ass             := 0;
+                 Prix[0]         := 0;
+                 Cent[0]         := 0;
+                 FillChar(Loc[0],SizeOf(Loc[0]),0);
+                 FillChar(Code[0],SizeOf(Code[0]),0);
+                End
+                 else
+                If(Ass = 1)Then
+                Begin
+                 Facture.Prix    := Prix[Reponse];
+                 Facture.Cent    := Cent[Reponse];
+                 Facture.CodeArt := Code[Reponse];
+                 Case Reponse of
+                  0 : Facture.Descr := 'Pressure piate';
+                  1 : Facture.Descr := 'Flywheel';
+                  2 : Facture.Descr := 'Transfer case';
+                 End;
+                 Facture.Descr := 'Transmission, ' + Facture.Descr;
+                 Actif[Reponse] := 0;
+                 Prix[Reponse]  := 0;
+                 Cent[Reponse]  := 0;
+                 FillChar(Loc[Reponse],SizeOf(Loc[Reponse]),0);
+                 FillChar(Code[Reponse],SizeOf(Code[Reponse]),0);
+                End;
+               End;
+                                  { - --->> Freins <<--- - }
+           7 : With Frein do
+               Begin
+                Facture.Prix    := Prix[Reponse];
+                Facture.Cent    := Cent[Reponse];
+                Facture.CodeArt := Code[Reponse];
+                Case Reponse of
+                 0 : Facture.Descr := 'Freins';
+                 1 : Facture.Descr := 'Galiper';
+                 2 : Facture.Descr := 'Rear drum';
+                 3 : Facture.Descr := 'Master cylindre';
+                 4 : Facture.Descr := 'Booster';
+                 5 : Facture.Descr := 'Anitskid';
+                End;
+                Facture.Descr := 'Freins, ' + Facture.Descr;
+                Actif[Reponse] := 0;
+                Prix[Reponse]  := 0;
+                Cent[Reponse]  := 0;
+                FillChar(Code[Reponse],SizeOf(Code[Reponse]),0);
+                FillChar(Loc[Reponse],SizeOf(Loc[Reponse]),0);
+               End;
+                                { - --->> Suspension <<--- - }
+           8 : With Suspension do
+               Begin
+                Facture.Prix    := Prix[Reponse];
+                Facture.Cent    := Cent[Reponse];
+                Facture.CodeArt := Code[Reponse];
+                Case Reponse of
+                  0 : Facture.Descr := 'Spindel';
+                  1 : Facture.Descr := 'Tab';
+                  2 : Facture.Descr := 'Strut';
+                  3 : Facture.Descr := 'IBeam';
+                  4 : Facture.Descr := 'Bar Tortion';
+                  5 : Facture.Descr := 'Bar stabilisatrice';
+                  6 : Facture.Descr := 'Axle beam';
+                  7 : Facture.Descr := 'Rear stub';
+                  8 : Facture.Descr := 'Spring';
+                  9 : Facture.Descr := 'Lames';
+                 10 : Facture.Descr := 'Box stering';
+                 11 : Facture.Descr := 'Cremaillere';
+                 12 : Facture.Descr := 'Pompe a stering';
+                 13 : Facture.Descr := 'Colone stering';
+                End;
+                Facture.Descr := 'Suspension, ' + Facture.Descr;
+                Actif[Reponse] := 0;
+                Prix[Reponse]  := 0;
+                Cent[Reponse]  := 0;
+                FillChar(Code[Reponse],SizeOf(Code[Reponse]),0);
+                FillChar(Loc[Reponse],SizeOf(Code[Reponse]),0);
+               End;
+                                 { - --->> Axle <<--- - }
+           9 : With Axle do
+               Begin
+                Facture.Prix    := Prix[Reponse];
+                Facture.Cent    := Cent[Reponse];
+                Facture.CodeArt := Code[Reponse];
+                Case Reponse of
+                 0 : Facture.Descr := 'Cardan';
+                 1 : Facture.Descr := 'Essieu';
+                 2 : Facture.Descr := 'Diferentiel';
+                 3 : Facture.Descr := 'Cochon de diferentiel';
+                 4 : Facture.Descr := 'Drive shaft';
+                End;
+                Facture.Descr := 'Axle, ' + Facture.Descr;
+                Actif[Reponse] := 0;
+                Prix[Reponse]  := 0;
+                Cent[Reponse]  := 0;
+                FillChar(Code[Reponse],SizeOf(Code[Reponse]),0);
+                FillChar(Loc[Reponse],SizeOf(Loc[Reponse]),0);
+               End;
+          End;
+         End;
+         SauveEnregistrement(PosNumero,Enregistrement);
+         SauveFacture(ReelPos,Facture);
+          { Question s'il y a plus que un... }
+         Begin
+           { Sauvegarde ecran }
+          SauvegardeEcran(TabExt);
+           { Preparation de l'ecran }
+          FixeCadrePlain(20,12,48,14,CoulDcr);
+          Ecrit(22,13,'Une autre vente (O/N) ?',CoulDcr);
+          Touche := RepOuiNon(46,13);
+          RestituteEcran(TabExt);
+          If(Touche = kbESC)Then Goto V10;
+          If(Chr(Lo(Touche)) in ['O'])Then
+          Begin
+           Inc(ReelPos);
+           Goto Debut;
+          End;
+          Temp := ModeFacture;
+          If(Temp < 2)Then Fac(Temp,NouvelleFacture);
+         End;
+ End;
+
+ (*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+**+*+*+*+*+*+*)
+
+ Procedure DerniereFacture;
+ Var ChoixFacture : Byte;
+ Begin
+  ChoixFacture := ModeFacture;
+  If(ChoixFacture < 2)Then Fac(ChoixFacture,AncienFacture);
+ End;
+
+Begin
+ Case Menu of
+  VentePiece           : Piece;
+  VenteDerniereFacture : DerniereFacture;
+ End;
+End;

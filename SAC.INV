@@ -1,0 +1,24 @@
+(****************************************************************)
+(*                                                              *)
+(* Description : þ Sauve dernier/ancien client.                 *)
+(* Note        : þ Cette proc‚dure sauvegarde dans un fichier   *)
+(*                 qui se nomme "ACLIENT.DAT" qui doit se situ‚ *)
+(*                 dans le r‚pertoire courant.                  *)
+(*               þ Cette proc‚dure fait partie de l'Unit‚       *)
+(*                 ICLIENT.                                     *)
+(*                                                              *)
+(****************************************************************)
+
+Procedure SauveAncienClient(Client:ClientType);
+Var Handle  : Integer;
+    Tableau : Pointer;
+Begin
+ SauveDerniereLigne(Tableau);
+ EcritDerLigne('Sauve dernier client en cours...');
+ Repeat Handle := Cree('ACLIENT.DAT'); Until (Handle <> -1);
+ Repeat
+  ModifieEnregistrement(Handle,0,SizeOf(Client),Client);
+ Until (ErreurFichier = 0);
+ Repeat Ferme(Handle); Until (ErreurFichier = 0);
+ RestitueDerniereLigne(Tableau);
+End;

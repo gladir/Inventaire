@@ -1,0 +1,19 @@
+(****************************************************************)
+(*                                                              *)
+(* Description : þ Sauve dernier/ancien facture.                *)
+(*                                                              *)
+(****************************************************************)
+
+Procedure SauveAncienFacture(Facture:FactureType);
+Var Handle  : Integer;
+    Tableau : Pointer;
+Begin
+ SauveDerniereLigne(Tableau);
+ EcritDerLigne('Sauve derniŠre facture en cours...');
+ Repeat Handle := Cree('AFACTURE.DAT'); Until (Handle <> -1);
+ Repeat
+  ModifieEnregistrement(Handle,0,SizeOf(Facture),Facture);
+ Until (ErreurFichier = 0);
+ Repeat Ferme(Handle); Until (ErreurFichier = 0);
+ RestitueDerniereLigne(Tableau);
+End;

@@ -1,0 +1,29 @@
+(****************************************************************)
+(*                                                              *)
+(* Description : þ Lecture ancien/dernier client.               *)
+(* Note        : þ Le fichier de lecture est "ACLIENT.DAT" et   *)
+(*                 est lu dans le r‚pertoire courant.           *)
+(*               þ Cette proc‚dure fait partie de l'unit‚       *)
+(*                 ICLIENT.                                     *)
+(*                                                              *)
+(****************************************************************)
+
+Function LectureAncienClient(Var Client:ClientType):Byte;
+Label Fin;
+Var Handle  : Integer;
+    Tableau : Pointer;
+Begin
+ LectureAncienClient := 0;
+ SauveDerniereLigne(Tableau);
+ EcritDerLigne('Lecture dernier client en cours...');
+ Handle := Ouvre('ACLIENT.DAT',0);
+ If(Handle = -1)Then
+ Begin
+  FillChar(Client,SizeOf(Client),0); { Claire le buffer client }
+  LectureAncienClient := 1;
+  Goto Fin;
+ End;
+ LitEnregistrement(Handle,0,SizeOf(Client),Client);
+ Ferme(Handle);
+Fin:RestitueDerniereLigne(Tableau);
+End;

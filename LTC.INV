@@ -1,0 +1,165 @@
+(****************************************************************)
+(*                                                              *)
+(* Description : þ Affiche une brŠve description des clients    *)
+(*                 sous forme de tableau.                       *)
+(* Note        : þ Cette proc‚dure lit dans un fichier qui se   *)
+(*                 nomme "CLIENT.DAT" qui doit se situ‚ dans le *)
+(*                 r‚pertoire courant.                          *)
+(*               þ Cette proc‚dure fait partie de l'Unit‚       *)
+(*                 ICLIENT.                                     *)
+(*                                                              *)
+(****************************************************************)
+
+Procedure LitToutClient;
+Const X    = 2;
+      Y    = 2;
+      MaxY = 20;
+      MaxX = 75;
+
+      Position : Byte = 0;
+      YPos     : Byte = 0;
+      Serie : Array[0..3,0..2] of Byte = ((X+8,Y,Y+MaxY),
+                                          (X+34,Y,Y+MaxY),
+                                          (X+55,Y,Y+MaxY),
+                                          (X+65,Y,Y+MaxY));
+Var Client     : ClientType;
+    Touche     : Word;
+    Handle     : Integer;
+    Compteur   : Byte;
+    Taille     : LongInt;
+    HandleTemp : Integer;
+    CN         : LongInt; { Compteur Normal }
+    CT         : LongInt; { Compteur Temporaire }
+
+ Procedure AfficheLigne(Ligne:Byte;Direction:ShortInt;Client:ClientType);
+ Begin
+  MouveFenetre(X,Y+3,X+7,Y+MaxY-1,23,Direction);
+  MouveFenetre(X+8,Y+3,X+33,Y+MaxY-1,23,Direction);
+  MouveFenetre(X+34,Y+3,X+54,Y+MaxY-1,23,Direction);
+  MouveFenetre(X+55,Y+3,X+64,Y+MaxY-1,23,Direction);
+  MouveFenetre(X+65,Y+3,X+74,Y+MaxY-1,23,Direction);
+  FixeUnCube(X,Ligne,186,31);
+  FixeUnCube(X+8,Ligne,179,31);
+  FixeUnCube(X+34,Ligne,179,31);
+  FixeUnCube(X+55,Ligne,179,31);
+  FixeUnCube(X+65,Ligne,179,31);
+  FixeUnCube(X+75,Ligne,186,31);
+  Ecrit(X+1,Ligne,Copy(Client.Numero,1,7),7+16);
+  Ecrit(X+9,Ligne,Copy(Client.NomCIE,1,25),7+16);
+  Ecrit(X+35,Ligne,Copy(Client.Adresse,1,20),7+16);
+  Ecrit(X+56,Ligne,Copy(Client.Telephone,1,8),7+16);
+  Ecrit(X+66,Ligne,Copy(Client.CodePostal,1,7),7+16);
+ End;
+
+Begin
+ EcritDerLigne('Triage des clients en cours...');
+ Handle := Ouvre('CLIENT.DAT',0);
+ Taille := TailleFichier(Handle);
+ If(Taille > 0)Then
+ Begin
+  Position   := 0;
+  YPos       := 0;
+  Taille     := Taille div SizeOf(Client);
+  CT         := 0;
+  HandleTemp := Cree('CLIENT.TMP');
+  For CN     := 0 to Taille do
+  Begin
+   FillChar(Client,SizeOf(Client),0);
+   LitEnregistrement(Handle,CN,SizeOf(Client),Client);
+   If Not((Client.Numero = '-X-X-X-')or(Client.Numero = ''))Then
+   Begin
+    ModifieEnregistrement(HandleTemp,CT,SizeOf(Client),Client);
+    Inc(CT);
+   End;
+  End;
+  Ferme(HandleTemp);
+  Ferme(Handle);
+   { Initialise Ecran }
+  FixeFormatDouble;
+  FixeCadrePlain(X,Y,X+MaxX,Y+MaxY,31);
+  Ecrit(X+1,Y+1,'Num‚ro  Nom compagnie',30);
+  Ecrit(X+35,Y+1,'Adresse',30);
+  Ecrit(X+56,Y+1,'T‚l‚phone Code pos.',30);
+  FixeUnCaractere(X,Y+2,199);
+  BarTexteHori(X+1,Y+2,X+MaxX-1,196,31);
+  FixeUnCaractere(X+MaxX,Y+2,182);
+  BarSerieVert(4,Serie,31);
+   { Affiche les donnees }
+  EcritDerLigne('Lecture des clients en cours...');
+  Handle := Ouvre('CLIENT.TMP',0);
+  Taille := TailleFichier(Handle);
+  If(Taille > 0)Then Taille := Taille div SizeOf(Client);
+  For Compteur := 0 to MaxY-4 do
+  Begin
+   If(Compteur <= Taille)Then
+   Begin
+    FillChar(Client,SizeOf(Client),0);
+    LitEnregistrement(Handle,Compteur,SizeOf(Client),Client);
+    Ecrit(X+1,Y+3+Compteur,Copy(Client.Numero,1,7),7+16);
+    Ecrit(X+9,Y+3+Compteur,Copy(Client.NomCIE,1,25),7+16);
+    Ecrit(X+35,Y+3+Compteur,Copy(Client.Adresse,1,20),7+16);
+    Ecrit(X+56,Y+3+Compteur,Copy(Client.Telephone,1,8),7+16);
+    Ecrit(X+66,Y+3+Compteur,Copy(Client.CodePostal,1,7),7+16);
+   End;
+  End;
+  Ferme(Handle);
+  Dec(Taille);
+  EcritDerLigne('');
+  Repeat
+   BarSelecteHori(X+1,Y+3+YPos,X+7,$F0);
+   BarSelecteHori(X+9,Y+3+YPos,Y+33,$F0);
+   BarSelecteHori(X+35,Y+3+YPos,Y+54,$F0);
+   BarSelecteHori(X+56,Y+3+YPos,Y+64,$F0);
+   BarSelecteHori(X+66,Y+3+YPos,Y+74,$F0);
+   Touche := LitClavier;
+   BarSelecteHori(X+1,Y+3+YPos,X+7,23);
+   BarSelecteHori(X+9,Y+3+YPos,Y+33,23);
+   BarSelecteHori(X+35,Y+3+YPos,Y+54,23);
+   BarSelecteHori(X+56,Y+3+YPos,Y+64,23);
+   BarSelecteHori(X+66,Y+3+YPos,Y+74,23);
+   Case Touche of
+    kbUp : Begin
+            If(Position > 0)Then
+            Begin
+             Dec(Position);
+             If(YPos = 0)Then
+             Begin
+              Repeat Handle := Ouvre('CLIENT.TMP',0); Until (Handle <> -1);
+              FillChar(Client,SizeOf(Client),0);
+              Repeat
+               LitEnregistrement(Handle,Position,SizeOf(Client),Client);
+              Until (ErreurFichier = 0);
+              Ferme(Handle);
+              AfficheLigne(5,-1,Client);
+             End
+              else
+             If(YPos > 0)Then Dec(YPos);
+            End;
+           End;
+  kbDown : Begin
+            If(Position < Taille)Then
+            Begin
+             Inc(Position);
+             If(YPos = 16)Then
+             Begin
+              Repeat Handle := Ouvre('CLIENT.TMP',0); Until (Handle <> -1);
+              FillChar(Client,SizeOf(Client),0);
+              Repeat
+               LitEnregistrement(Handle,Position,SizeOf(Client),Client);
+              Until (ErreurFichier = 0);
+              Ferme(Handle);
+              AfficheLigne(21,1,Client);
+             End
+              else
+             If(YPos < 16)Then Inc(YPos);
+            End;
+           End;
+   End;
+  Until (Touche = kbESC);
+  Handle := Efface('CLIENT.TMP');
+ End
+  else
+ Begin
+  Ferme(Handle);
+ End;
+End;

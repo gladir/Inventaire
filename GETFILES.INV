@@ -1,0 +1,644 @@
+(************************************************************************)
+(*                                                                      *)
+(*                     Lecture des enregistrements                      *)
+(*                             Inventaire                               *)
+(*                                                                      *)
+(*  Description   : þ Lecture des enregistrements de piŠce d'auto.      *)
+(*  RequŠre       : þ Turbo Pascal 6 ou post‚rieur.                     *)
+(*  Note          : þ Ce fichier doit ˆtre inclue dans l'unit‚ IFICHIER *)
+(*                    dans la section "Implementation".                 *)
+(*  Avertissement : þ Cette proc‚dure se cr‚er un fichier temporaire.   *)
+(*                  þ Faire bien attention ou vous ajoutez les          *)
+(*                    proc‚dures dans "LectureEnregistrement" … cause   *)
+(*                    de "SetKeyBoard" sous risque de plant‚ le systŠme *)
+(*                    inventaire.                                       *)
+(*                                                                      *)
+(************************************************************************)
+
+{$V-}
+
+Procedure LectureEnregistrement(Mode:TypeLecture);
+Const Serie : Array[0..11] of Byte = (23,2,22,44,2,22,58,2,22,66,2,22);
+
+       { Constante de tri local }
+
+      TriDate        = 1;
+      TriMilage      = 2;
+      TriBody        = 3;
+      TriModele      = 4;
+      TriNumSerie    = 5;
+      TriInfDate     = 6;
+      TriInfMilage   = 7;
+      TriInfBody     = 8;
+      TriInfModele   = 9;
+      TriInfNumSerie = 10;
+      TriSupDate     = 11;
+      TriSupMilage   = 12;
+      TriSupBody     = 13;
+      TriSupModele   = 14;
+      TriSupNumSerie = 15;
+      AncunTri       = 255;
+
+Type StrNumSerie = String[20];
+     StrModele   = String[20];
+
+Var Descr        : DescrType;
+    Tri          : DescrType;
+    TriPos       : Byte;
+    Handle       : Integer;
+    Touche       : Word;
+    Compteur     : Byte;
+    Taille       : LongInt;
+    TailleTemp   : LongInt;
+    Tableau      : Pointer;
+    TabEcran     : Pointer;
+    SDesc        : Word;
+    Position     : Word;
+    YPos         : Byte;
+    Sortie       : ShortInt;
+
+ Function Recherche(Descr:DescrType):LongInt;
+ Var Lecture  : DescrType;
+     Compteur : LongInt;
+     Handle   : Integer;
+ Begin
+  Repeat Handle := Ouvre('FILES.DAT',0); Until (Handle <> -1);
+  FillChar(Lecture,SDesc,0);
+  Recherche := 0;
+  For Compteur := 0 to Taille do
+  Begin
+   Repeat
+    LitEnregistrement(Handle,Compteur,SDesc,Lecture);
+   Until (ErreurFichier = 0);
+   If(Descr.NumSerie = Lecture.NumSerie)and
+     (Descr.Modele = Lecture.Modele)and
+     (Descr.Body = Lecture.Body)and
+     (Descr.Milage = Lecture.Milage)and
+     (Descr.Annee = Lecture.Annee)and
+     (Descr.Mois = Lecture.Mois)and
+     (Descr.Jour = Lecture.Jour)Then
+   Begin
+    Recherche := Compteur;
+    Ferme(Handle);
+    Exit;
+   End;
+  End;
+  Recherche := -1;
+  Ferme(Handle);
+ End;
+
+ Function Modele(Var Mode:StrModele):ShortInt;
+ Var Tableau : Pointer;
+     Escape  : Byte;
+ Begin
+  SetKeyBoard(0); { D‚branche le Clavier }
+  SauvegardeEcran(Tableau);
+  FixeFormatDouble;
+  FixeCadrePlain(40-(30 div 2),12,40-(30 div 2)+30,14,$F0);
+  Ecrit(40-(30 div 2)+1,13,'ModŠle :',$F0);
+  SetKeyBoard(1); { Rebranche le Clavier }
+  FixeLocalise(40-(30 div 2)+10,13,20,Mode,Escape);
+  RestituteEcran(Tableau);
+  If(Escape = 0)Then Modele := 0
+                Else Modele := -1;
+ End;
+
+ Procedure FixeBody(X,Y,Longeur:Byte;Var Body,Escape:Byte);
+ Label 10;
+ Const XH = 24;
+       YH = 13;
+ Var Key      : KeyQuestionType;
+     Chaine   : String;
+     Compteur : Byte;
+ Begin
+   { Initiation data }
+  FillChar(Key,SizeOf(Key),0);
+  Key[5].Alt   := 'FAMILLIALE';
+  Key[5].Ctrl  := 'FAMILLIALE';
+  Key[7].Alt   := 'HATCH BACK 5P';
+  Key[1].Alt   := 'HATCH BACK 3P';
+  Key[15].Alt  := 'PICKUP';
+  Key[15].Ctrl := 'PICKUP';
+  Key[18].Alt  := 'SEDAN 2P';
+  Key[0].Alt   := 'SEDAN 4P';
+  FixeFormatDouble;
+  FixeCadrePlain(XH,YH,XH+31,YH+9,$F0);
+  Ecrit(XH+2,YH+1,'Aide : ',$F0);
+  EcritSpecial(XH+2,YH+3,#3#240'Alt-F = Familliale'#1+
+                         'Alt-H = Hatch Back 5 portes'#1+
+                         'Alt-B = Hatch Back 3 portes'#1+
+                         'Alt-P = Pickup'#1+
+                         'Alt-S = Sedan 2 portes'#1+
+                         'Alt-A = Sedan 4 portes');
+  Chaine := '';
+10:Question(X,Y,Chaine,Longeur,Key,False,Escape);
+  FixeCurseurFermer;
+  Chaine := Maj(Chaine);
+  If(Escape <> 1)Then
+  Begin
+   If(Chaine = Key[5].Alt)Then Body := 1 else { Familiale }
+   If(Chaine = Key[7].Alt)Then Body := 2 else { Hatch Back 5P }
+   If(Chaine = Key[1].Alt)Then Body := 3 else { Hatch Back 3P }
+   If(Chaine = Key[15].Alt)Then Body := 4 else { Pickup }
+   If(Chaine = Key[18].Alt)Then Body := 5 else { Sedan 2P }
+   If(Chaine = Key[0].Alt)Then Body := 6 { Sedan 4P }
+    Else If(Escape = 0)Then Goto 10;
+  End;
+  Ecrit(X,Y,Chaine,7);
+ End;
+
+ Procedure FixeMilage(X,Y:Byte;Var Milage:LongInt;Var Escape:Byte);
+ Label 10;
+ Var Key      : KeyQuestionType;
+     Chaine   : String;
+     Erreur   : Word;
+     Compteur : Byte;
+ Begin
+   { Initiation data }
+  FillChar(Key,SizeOf(Key),0);
+  If(Milage > 0)Then Str(Milage,Chaine)
+                Else Chaine := '';
+10:Question(X,Y,Chaine,8,Key,False,Escape);
+  FixeCurseurFermer;
+  If(Escape = 0)Then
+  Begin
+   Val(Chaine,Milage,Erreur);
+   If(Erreur <> 0)Then Goto 10;
+   If(Milage < 0)Then Goto 10;
+  End;
+ End;
+
+ Procedure FixeDate(X,Y:Byte;Var Jour,Mois,Annee,Escape:Byte);
+ Label 10,20,30;
+ Var Chaine : String;
+     Erreur : Word;
+     Temp   : Word;
+ Begin
+10:FixeLocalise(X,Y,2,Chaine,Escape);
+  If(Escape = 0)Then
+  Begin
+   Val(Chaine,Jour,Erreur);
+   If(Erreur <> 0)Then Goto 10;
+   If(Jour > 31)or(Jour = 0)Then Goto 10;
+ 20:FixeLocalise(X+3,Y,2,Chaine,Escape);
+   If(Escape = 0)Then
+   Begin
+    Val(Chaine,Mois,Erreur);
+    If(Erreur <> 0)Then Goto 20;
+    If(Mois > 12)or(Mois = 0)Then Goto 20;
+  30:FixeLocalise(X+6,Y,4,Chaine,Escape);
+    If(Escape = 0)Then
+    Begin
+     Val(Chaine,Temp,Erreur);
+     If(Erreur <> 0)Then Goto 30;
+     If(Temp < 1902)or(Temp > 2158)Then Goto 30;
+     Annee := Temp - 1902;
+    End;
+   End;
+  End;
+ End;
+
+ Function Body(Var Mode:Byte):ShortInt;
+ Var Tableau : Pointer;
+     Escape  : Byte;
+ Begin
+  SauvegardeEcran(Tableau);
+  FixeFormatDouble;
+  FixeCadrePlain(40-(24 div 2),8,40-(24 div 2)+24,10,$F0);
+  Ecrit(40-(24 div 2)+1,9,'Body :',$F0);
+  FixeBody(40-(24 div 2)+8,9,15,Mode,Escape);
+  RestituteEcran(Tableau);
+  If(Escape = 0)Then Body := 0
+                Else Body := -1;
+ End;
+
+ Function Milage(Var Mode:LongInt):ShortInt;
+ Var Tableau : Pointer;
+     Escape  : Byte;
+ Begin
+  SauvegardeEcran(Tableau);
+  FixeFormatDouble;
+  FixeCadrePlain(40-(18 div 2),12,40-(18 div 2)+18,14,$F0);
+  Ecrit(40-(18 div 2)+1,13,'Milage :',$F0);
+  FixeMilage(40-(18 div 2)+10,13,Mode,Escape);
+  RestituteEcran(Tableau);
+  If(Escape = 0)Then Milage := 0
+                Else Milage := -1;
+ End;
+
+ Function _Date(Var Jour,Mois,Annee:Byte):ShortInt;
+ Var Tableau : Pointer;
+     Escape  : Byte;
+ Begin
+  SauvegardeEcran(Tableau);
+  FixeFormatDouble;
+  FixeCadrePlain(40-(18 div 2),12,40-(18 div 2)+18,14,$F0);
+  Ecrit(40-(18 div 2)+1,13,'Date : JJ/MM/AAAA',$F0);
+  FixeDate(40-(18 div 2)+8,13,Jour,Mois,Annee,Escape);
+  RestituteEcran(Tableau);
+  If(Escape = 0)Then _Date := 0
+                Else _Date := -1;
+ End;
+
+ Procedure Bar(YPos,Couleur:Byte);
+ Begin
+  BarSelecteHori(3,5+YPos,22,Couleur);
+  BarSelecteHori(24,5+YPos,43,Couleur);
+  BarSelecteHori(45,5+YPos,57,Couleur);
+  BarSelecteHori(59,5+YPos,65,Couleur);
+  BarSelecteHori(67,5+YPos,76,Couleur);
+ End;
+
+ Procedure ReinitialiseListe;
+ Var HandleTemporaire : Integer;
+     OK               : Byte;
+     ReelPosition     : LongInt;
+     Compteur         : Word;
+ Begin
+  EffaceFenetre(3,5,22,21,7);
+  EffaceFenetre(24,5,43,21,7);
+  EffaceFenetre(45,5,57,21,7);
+  EffaceFenetre(59,5,65,21,7);
+  EffaceFenetre(67,5,76,21,7);
+  EcritDerLigne('Lecture en cours...');
+  Repeat
+   Handle := Ouvre('FILES.DAT',0);
+   If(Handle = -1)Then
+   Begin
+    EcritDerLigne('Erreur de lecture, presse une touche pour continuer ou <ESC> pour retourner');
+    Touche := LitClavier;
+    If(Touche = kbEsc)Then
+    Begin
+     RestitueDerniereLigne(Tableau);
+     Exit;
+    End;
+   End;
+  Until (Handle <> -1);
+  Repeat
+   Taille := TailleFichier(Handle) div SDesc;
+   If(Handle = -1)Then
+   Begin
+    EcritDerLigne('Erreur de lecture, presse une touche pour continuer ou <ESC> pour retourner');
+    Touche := LitClavier;
+    If(Touche = kbEsc)Then
+    Begin
+     RestitueDerniereLigne(Tableau);
+     Exit;
+    End;
+   End;
+  Until (Handle <> -1);
+  ReelPosition := 0;
+  TailleTemp   := 0;
+  HandleTemporaire := Cree('FILES.TMP');
+  For Compteur := 0 to Taille do
+  Begin
+   FillChar(Descr,SDesc,0);
+   LitEnregistrement(Handle,Compteur,SDesc,Descr);
+   OK := 0;
+   Case TriPos of
+       TriDate : If(Descr.Annee = Tri.Annee)and(Descr.Mois = Tri.Mois)and
+                   (Descr.Jour = Tri.Jour)Then OK := 1;
+     TriMilage : If(Tri.Milage = Descr.Milage)Then OK := 1;
+       TriBody : If(Tri.Body = Descr.Body)Then OK := 1;
+     TriModele : If(Tri.Modele = Descr.Modele)Then OK := 1;
+   TriNumSerie : If(Tri.NumSerie = Descr.NumSerie)Then OK := 1;
+    TriInfDate : If(Descr.Annee <= Tri.Annee)and
+                   (Descr.Mois <= Tri.Mois)and
+                   (Descr.Jour <= Tri.Jour)Then OK := 1;
+  TriInfMilage : If(Tri.Milage <= Descr.Milage)Then OK := 1;
+    TriInfBody : If(Tri.Body <= Descr.Body)Then OK := 1;
+  TriInfModele : If(Tri.Modele <= Descr.Modele)Then OK := 1;
+TriSupNumSerie : If(Tri.NumSerie <= Descr.NumSerie)Then OK := 1;
+    TriSupDate : If(Descr.Annee >= Tri.Annee)and
+                   (Descr.Mois >= Tri.Mois)and
+                   (Descr.Jour >= Tri.Jour)Then OK := 1;
+  TriSupMilage : If(Tri.Milage >= Descr.Milage)Then OK := 1;
+    TriSupBody : If(Tri.Body >= Descr.Body)Then OK := 1;
+  TriSupModele : If(Tri.Modele >= Descr.Modele)Then OK := 1;
+TriSupNumSerie : If(Tri.NumSerie >= Descr.NumSerie)Then OK := 1;
+      AncunTri : If(Descr.NumSerie <> '')and
+                   (Descr.NumSerie[1] <> 'å')and
+                   (Descr.NumSerie[1] <> '-')Then OK := 1;
+   End;
+   If(OK = 1)Then
+   Begin
+    ModifieEnregistrement(HandleTemporaire,ReelPosition,SizeOf(Descr),Descr);
+    Inc(ReelPosition);
+    Inc(TailleTemp);
+   End;
+  End;
+  Ferme(Handle);
+  SetKeyBoard(0); { D‚branche le Clavier }
+  dec(TailleTemp);
+  For Compteur := 0 to 16 do
+  Begin
+   If(TailleTemp >= Compteur)Then
+   Begin
+    With Descr do
+    Begin
+     FillChar(Descr,SDesc,0);
+     Repeat
+      SetKeyBoard(1);
+      LitEnregistrement(HandleTemporaire,Compteur,SDesc,Descr);
+      SetKeyBoard(0);
+     Until (ErreurFichier = 0);
+     If(Length(NumSerie) > 0)Then Ecrit(3,5+Compteur,Copy(NumSerie,1,20),7);
+     If(Length(Modele) > 0)Then Ecrit(24,5+Compteur,Copy(Modele,1,20),7);
+     Ecrit(45,5+Compteur,FormatBody(Body),7);
+     Ecrit(59,5+Compteur,Strg(Milage),7);
+     Ecrit(67,5+Compteur,Date(Jour,Mois,Annee),7);
+    End;
+   End;
+  End;
+  Ferme(HandleTemporaire);
+  EcritSpecial(2,24,#3+Chr(CoulTch)+'F2'+#3+Chr(CoulBar)+' Date  '+#18+'F3'+
+               #18+' Milage  '+#18+'F4'+#18+' Body  '+#18+'F5'+#18+' ModŠle '+
+               #18+' F6 '+#18+'Num‚ro s‚rie '+#18+' F10'+#18+' Annule');
+  Position := 0;
+  YPos     := 0;
+  SetKeyBoard(1); { Rebranche le Clavier }
+ End;
+
+ Procedure AfficheLigne(Ligne:Byte;Direction:ShortInt;Descr:DescrType);
+ Begin
+  With Descr do
+  Begin
+   SetKeyBoard(0); { D‚branche le Clavier }
+   MouveFenetre(2,5,22,21,7,Direction);
+   MouveFenetre(23,5,43,21,7,Direction);
+   MouveFenetre(44,5,57,21,7,Direction);
+   MouveFenetre(58,5,65,21,7,Direction);
+   MouveFenetre(66,5,76,21,7,Direction);
+   FixeUnCube(2,Ligne,186,15);
+   FixeUnCube(23,Ligne,179,15);
+   FixeUnCube(44,Ligne,179,15);
+   FixeUnCube(58,Ligne,179,15);
+   FixeUnCube(66,Ligne,179,15);
+   FixeUnCube(77,Ligne,186,15);
+   If(Length(NumSerie) > 0)Then Ecrit(3,Ligne,Copy(NumSerie,1,20),7);
+   If(Length(Modele) > 0)Then Ecrit(24,Ligne,Copy(Modele,1,20),7);
+   Ecrit(45,Ligne,FormatBody(Body),7);
+   Ecrit(59,Ligne,Strg(Milage),7);
+   Ecrit(67,Ligne,Date(Jour,Mois,Annee),7);
+   SetKeyBoard(1); { Rebranche le Clavier }
+  End;
+ End;
+
+ Procedure UpKey;
+ Begin
+  If(Position > 0)Then
+  Begin
+   Dec(Position);
+   If(YPos = 0)Then
+   Begin
+    Repeat Handle := Ouvre('FILES.TMP',0); Until (Handle <> -1);
+    FillChar(Descr,SDesc,0);
+    Repeat
+     LitEnregistrement(Handle,Position,SDesc,Descr);
+    Until (ErreurFichier = 0);
+    Ferme(Handle);
+    AfficheLigne(5,-1,Descr);
+   End
+    else
+   If(YPos > 0)Then Dec(YPos);
+  End;
+ End;
+
+ Procedure DownKey;
+ Begin
+  If(Position < TailleTemp)Then
+  Begin
+   Inc(Position);
+   If(YPos = 16)Then
+   Begin
+    Repeat Handle := Ouvre('FILES.TMP',0); Until (Handle <> -1);
+    FillChar(Descr,SDesc,0);
+    Repeat
+     LitEnregistrement(Handle,Position,SDesc,Descr);
+    Until (ErreurFichier = 0);
+    Ferme(Handle);
+    AfficheLigne(21,1,Descr);
+   End
+    else
+   If(YPos < 16)Then Inc(YPos);
+  End;
+ End;
+
+ Procedure _Date_(TriDate:Byte);
+ Begin
+  Sortie := _Date(Tri.Jour,Tri.Mois,Tri.Annee);
+  If(Sortie = 0)Then
+  Begin
+   TriPos := TriDate;
+   ReinitialiseListe;
+  End;
+ End;
+
+ Procedure _Milage_(TriMilage:Byte);
+ Begin
+  Sortie := Milage(Tri.Milage);
+  If(Sortie = 0)Then
+  Begin
+   TriPos := TriMilage;
+   ReinitialiseListe;
+  End;
+ End;
+
+ Procedure _Body_(TriBody:Byte);
+ Begin
+  Sortie := Body(Tri.Body);
+  If(Sortie = 0)Then
+  Begin
+   TriPos := TriBody;
+   ReinitialiseListe;
+  End;
+ End;
+
+ Procedure _Modele_(TriModele:Byte);
+ Begin
+  Sortie := Modele(Tri.Modele);
+  If(Sortie = 0)Then
+  Begin
+   TriPos := TriModele;
+   ReinitialiseListe;
+  End;
+ End;
+
+ Procedure _NumeroSerie_(TriNumSerie:Byte);
+ Begin
+  Sortie := NumeroSerie(Tri.NumSerie);
+  If(Sortie = 0)Then
+  Begin
+   TriPos := TriNumSerie;
+   ReinitialiseListe;
+  End;
+ End;
+
+ Procedure _AucunTri_;
+ Begin
+  FillChar(Tri,SizeOf(Tri),0);
+  TriPos := AncunTri;
+  ReinitialiseListe;
+ End;
+
+ Procedure LectureEnr;
+ Const YMax   : Array[0..9] of Byte = (15,10,3,11,19,19,19,19,19,19);
+ Var Menu     : ShortInt;
+     Touche   : Word;
+     Position : Byte;
+ Begin
+  SauvegardeEcran(TabEcran);
+  Menu := SelectePiece;
+  If(Menu <> -1)Then
+  Begin
+   Position := 0;
+   FixeCadrePlain(20,2,59,6+YMax[Menu],CoulMnu);
+   Case Menu of
+    0 : AffichePieceDevant(22,4,CoulMnu);
+    1 : AffichePieceCowl(22,4,CoulMnu);
+    2 : AffichePiecePorte(22,4,CoulMnu);
+    3 : AffichePieceDerriere(22,4,CoulMnu);
+   End;
+   Repeat
+    Touche := LitClavier;
+   Until (Touche = kbESC);
+  End;
+  RestituteEcran(TabEcran);
+ End;
+
+Begin
+ FillChar(Tri,SizeOf(Tri),0);
+ TriPos := 255;
+ SDesc := SizeOf(Descr);
+ Case Mode of
+  GetAuto :
+  Begin
+   { Partie Affichage de l'‚cran :
+0         1         2         3         4         5         6         7
+01234567890123456789012345678901234567890123456789012345678901234567890123456789
+ÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÉÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍ»±±
+±±ºNum‚ro s‚rie        ³ModŠle              ³Body         ³Milage ³Date      º±±
+±±ÇÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄ¶±±
+±±ºxxxxxxxxxxxxxxxxxxxx³xxxxxxxxxxxxxxxxxxxx³xxxxxxxxxxxxx³xxxxxxx³JJ/MM/AAAAº±±
+±±º.                   ³.                   ³.            ³.      ³.         º±±
+±±º.                   ³.                   ³.            ³.      ³.         º±±
+±±ÈÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍ¼±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ÛÛF2 Date F3 Milage F4 Body F5 ModŠle F6 Num‚ro s‚rie F7 Info F10 AnnuleÛÛÛÛÛÛÛÛ
+01234567890123456789012345678901234567890123456789012345678901234567890123456789
+0         1         2         3         4         5         6         7 }
+   SetKeyBoard(0); { D‚branche le Clavier }
+   FixeFormatDouble;
+   FixeCurseurFermer;
+   FixeCadrePlain(2,2,77,22,15);
+   Ecrit(3,3,'Num‚ro s‚rie',14);
+   Ecrit(24,3,'ModŠle',14);
+   Ecrit(45,3,'Body',14);
+   Ecrit(59,3,'Milage  Date',14);
+   BarTableHori(2,4,77,15);
+   BarSerieVert(4,Serie,15);
+   SauveDerniereLigne(Tableau);
+   SetKeyBoard(1); { Rebranche le Clavier }
+   ReinitialiseListe;
+   Repeat
+    Bar(YPos,$F0);
+    Touche := LitClavier;
+    Bar(YPos,7);
+    Case Touche of
+     kbUp : UpKey;
+   kbDown : DownKey;
+     kbF2 : _Date_(TriDate);
+     kbF3 : _Milage_(TriMilage);
+     kbF4 : _Body_(TriBody);
+     kbF5 : _Modele_(TriModele);
+     kbF6 : _NumeroSerie_(TriNumSerie);
+  kbEnter : LectureEnr;
+    kbF10 : _AucunTri_;
+ kbCtrlF2 : _Date_(TriInfDate);
+ kbCtrlF3 : _Milage_(TriInfMilage);
+ kbCtrlF4 : _Body_(TriInfBody);
+ kbCtrlF5 : _Modele_(TriInfModele);
+ kbCtrlF6 : _NumeroSerie_(TriInfNumSerie);
+kbCtrlF10 : _AucunTri_;
+  kbAltF2 : _Date_(TriSupDate);
+  kbAltF3 : _Milage_(TriSupMilage);
+  kbAltF4 : _Body_(TriSupBody);
+  kbAltF5 : _Modele_(TriSupModele);
+  kbAltF6 : _NumeroSerie_(TriSupNumSerie);
+ kbAltF10 : _AucunTri_;
+    End;
+   Until (Touche = kbEsc);
+   RestitueDerniereLigne(Tableau);
+    { Efface le fichier temporaire }
+   Handle := Efface('FILES.TMP');
+  End;
+ End;
+End;
+
+ { 255 = Complete
+   1   = Numero serie
+   2   = Modele
+   4   = Body
+   8   = Couleur
+   16  = Milage
+   32  = Annee fabrication }
+
+Function RechercheDescription(Var DescrOrg:DescrType;TypeRech:Byte):LongInt;
+Label 10,20,30;
+Var Compteur : LongInt;
+    Tableau  : Pointer;
+    Taille   : LongInt;
+    Descr    : DescrType;
+    Handle   : Integer;
+
+ Procedure LitDescription(Handle:Integer;Pos:LongInt;Var Descr:DescrType);
+ Begin
+  FillChar(Descr,SizeOf(Descr),0);
+  LitEnregistrement(Handle,Pos,SizeOf(Descr),Descr);
+ End;
+
+Begin
+ DescrOrg.NumSerie := Maj(DescrOrg.NumSerie);
+ SauveDerniereLigne(Tableau);
+ EcritDerLigne('Recherche l''enregistrement en cours...');
+ Handle := Ouvre('FILES.DAT',0);
+ If(Handle = -1)Then
+ Begin
+  RechercheDescription := -1;
+  Exit;
+ End;
+ Taille := TailleFichier(Handle);
+ If(Taille > 0)Then Taille := Taille div SizeOf(Descr);
+ Compteur := 0;
+10:LitDescription(Handle,Compteur,Descr);
+ Case TypeRech of
+  1 : If(Descr.NumSerie = DescrOrg.NumSerie)Then Goto 20;
+  2 : If(Descr.Modele   = DescrOrg.Modele)Then   Goto 20;
+  4 : If(Descr.Body     = DescrOrg.Body)Then     Goto 20;
+  8 : If(Descr.Couleur  = DescrOrg.Couleur)Then  Goto 20;
+ 16 : If(Descr.Milage   = DescrOrg.Milage)Then   Goto 20;
+ 32 : If(Descr.Annee    = DescrOrg.Annee)and
+        (Descr.Mois     = DescrOrg.Mois)and
+        (Descr.Jour     = DescrOrg.Jour)Then     Goto 20;
+ 34 : If(Descr.Modele   = DescrOrg.Modele)and
+        (Descr.Mois     = DescrOrg.Mois)and
+        (Descr.Jour     = DescrOrg.Jour)and
+        (Descr.Annee    = DescrOrg.Annee)Then    Goto 20;
+ End;
+ If(Compteur <= Taille)Then
+ Begin
+  Inc(Compteur);
+  Goto 10;
+ End
+  else
+ Begin
+  RechercheDescription := -1;
+  Goto 30;
+ End;
+20:RechercheDescription := Compteur;
+30:RestitueDerniereLigne(Tableau);
+ Move(Descr,DescrOrg,SizeOf(Descr));
+ Ferme(Handle);
+End;

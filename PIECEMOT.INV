@@ -1,0 +1,70 @@
+Procedure FixePieceMotor(Var PieceMotor:PieceMoteurType;Var Escape:Boolean);
+Label V0,V1,V3,V7,V8;
+Const Position : Byte = 0;
+      XPos     : Byte = 0;
+      XD       = 2;
+      YD       = 2;
+      TabBar   : Array[0..14] of Byte = (XD+1,YD+3,XD+21,XD+23,YD+3,XD+32,
+                                         XD+34,YD+3,XD+46,XD+48,YD+3,XD+57,
+                                         XD+59,YD+3,XD+74);
+      SerieVer : Array[0..11] of Byte = (XD+22,YD,YD+13,XD+33,YD,YD+13,
+                                         XD+47,YD,YD+13,XD+58,YD,YD+13);
+Var Touche  : Word;
+    Basse   : Byte;
+    Ancien  : Word;
+    Couleur : Byte;
+Begin
+ FixeFormatBar(5,TabBar);
+ Escape := False;
+ With PieceMotor do
+ Begin
+   { Initialise Ecran }
+  BaseVisuel(XD,YD,XD+75,YD+13,4,SerieVer,XD+24,XD+49,XD+60);
+  Ecrit(XD+35,YD+1,'Description',15);
+  EcritSpecial(XD+2,YD+3,#3#7'Intercooler'#1'Oil cooler'#1'Turbine'#1+
+               'Pompe injection'#1'Module ‚lectronique'#1'Alternateur'#1+
+               'Starter'#1'Distributeur'#1'Compr. air conditi.'#1+
+               'Bindes poulies');
+  Repeat
+   Ancien  := MemW[$0040:$1A];
+   Touche  := AfficheBarTouche(Position,XPos,$F0,Actif[Position] * 8 + 7);
+   Basse   := Lo(Touche);
+   Case Basse of
+    9 : Max(XPos,4);
+48..57,65..90,97..112 : Begin
+                         If(XPos in [1,3,4])Then MemW[$0040:$1A] := Ancien;
+                         Case XPos of
+                          1 : Goto V0;
+                          3 : Goto V3;
+                          4 : Begin
+                               If(Basse in [48..57])Then Goto V7
+                                                    Else Touche := LitClavier;
+                              End;
+                         End;
+                        End;
+    0 : Begin
+         ToucheTab(9,4,Touche,Position,XPos,Actif[Position]);
+         If(Hi(Touche) = 82)Then
+         Begin
+          Case XPos of
+           0 : Max(Actif[Position],1);
+           1 : Begin
+             V0:FixeDollar(XD+24,YD+3+Position,9,Prix[Position],Cent[Position],Basse);
+               End;
+           3 : Begin
+             V3:FixeLocalise(XD+49,YD+3+Position,7,Loc[Position],Basse);
+               End;
+           4 : Begin
+             V7:FixeLocalise(XD+60,YD+3+Position,7,Code[Position],Basse);
+               End;
+          End;
+          If(XPos > 0)and(Basse = 0)Then Actif[Position] := 1;
+          AfficheBar(Position,7 + Actif[Position] * 8);
+          Max(Position,9);
+          V8:
+         End;
+        End;
+   End;
+  Until (Basse in [13,27]);
+ End;
+End;

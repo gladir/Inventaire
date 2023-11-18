@@ -1,0 +1,71 @@
+(****************************************************************)
+(*                                                              *)
+(* Description   : þ Cette proc‚dure affiche la liste des       *)
+(*                   clients qui sont contenus dans le fichier  *)
+(*                   "CLIENT.DAT".                              *)
+(* Note          : þ Cette proc‚dure fait partie de l'unit‚     *)
+(*                   ICLIENT.                                   *)
+(* Avertissement : þ Si l'imprimante est ferm‚ il continue      *)
+(*                   quand mˆme … imprim‚, mais a une seule     *)
+(*                   diff‚rence qu'il imprime dans le vide.     *)
+(*                                                              *)
+(****************************************************************)
+
+Procedure ImprCli;
+Const ESC   = #27;
+      ENTER = #13;
+      SOH   = #1;
+Var Tableau  : Pointer;
+    Taille   : LongInt;
+    Compteur : Word;
+    Handle   : Integer;
+    Touche   : Word;
+    Client   : ClientType;
+    Result   : Boolean;
+Begin
+ If(TesteImprimante = 27)Then Exit;
+ SauveDerniereLigne(Tableau);
+ EcritDerLigne('Un instant S.V.P., Impression en cours...');
+ Handle := Ouvre('CLIENT.DAT',0);
+ If(Handle = -1)Then
+ Begin
+  EcritDerLigne('Liste absente, presse une touche pour retourner...');
+  Touche := LitClavier;
+ End
+  else
+ Begin
+  Result := PrintLn(ESC+'W'+SOH,LPT1);
+  Result := PrintLn(ESC+'G',LPT1);
+  Result := PrintLn(ESC+'E',LPT1);
+  Result := PrintLn(Espace(Centre)+'*** '+NomCIE+' ***',LPT1);
+  Result := PrintLn(ESC+'H',LPT1);
+  Result := PrintLn(ESC+'W'+#0,LPT1);
+  Result := PrintLn(Espace(49-18)+'FICHIER DES CLIENTS',LPT1);
+  Result := PrintLn(ESC+'F',LPT1);
+  Result := Print(#13+#10,LPT1);
+  Result := PrintLn('CLIENT  NOM DE COMPAGNIE          ADRESSE                   TELEPH.  CODE POSTAL',LPT1);
+  Result := PrintLn('======= ========================= ========================= ======== ===========',LPT1);
+  Taille := TailleFichier(Handle);
+  If(Taille > 0)Then
+  Begin
+   Taille := Taille div SizeOf(Client);
+   For Compteur := 0 to Taille-1 do
+   Begin
+    LitEnregistrement(Handle,Compteur,SizeOf(Client),Client);
+    If(Client.Numero <> '-X-X-X-')Then
+    Begin
+     Result := PrintLn(Client.Numero+Espace(8-Length(Client.Numero))+
+               Client.NomCIE+Espace(26-Length(Client.NomCIE))+
+               Client.Adresse+Espace(26-Length(Client.Adresse))+
+               Client.Telephone+Espace(4)+Client.CodePostal,LPT1);
+    End;
+   End;
+  End
+   else
+  Begin
+   Result := PrintLn('Absent',LPT1);
+  End;
+  Ferme(Handle);
+ End;
+ RestitueDerniereLigne(Tableau);
+End;

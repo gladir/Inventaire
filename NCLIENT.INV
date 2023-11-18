@@ -1,0 +1,110 @@
+(****************************************************************)
+(*                                                              *)
+(* Description : þ Demande le nouveau client.                   *)
+(* Note        : þ Il n'y a aucune sauvegarde enregistrement de *)
+(*                 client sur disque dans cette proc‚dure.      *)
+(*               þ Il y a des testes pour les personnes qui     *)
+(*                 marque n'importe quoi.                       *)
+(*               þ Cette proc‚dure fait partie de l'unit‚       *)
+(*                 ICLIENT.                                     *)
+(*                                                              *)
+(****************************************************************)
+
+Function NouveauClient(Var Client:ClientType):Byte;
+Label 10,20,30,40,50,60,70,Fin;
+Const X = 2;
+      Y = 2;
+Var Escape  : Byte;
+    Tableau : Pointer;
+
+ Procedure FixeLocalise(X,Y,Longeur:Byte;Var Chaine:String;Var Escape:Byte);
+ Var Key      : KeyQuestionType;
+     Basse    : Byte;
+     Tableau  : Pointer;
+ Begin
+  FillChar(Key,SizeOf(Key),0);
+  Escape := 0;
+  SauveDerniereLigne(Tableau);
+  Ecrit(2,24,'Entr‚ le code et appuyer sur <ENTER> ou <ESC> pour retourner',$F0);
+  Question(X,Y,Chaine,Longeur,Key,True,Basse);
+  FixeCurseurFermer;
+  Escape := Basse;
+  RestitueDerniereLigne(Tableau);
+ End;
+
+Begin
+ NouveauClient := 0;
+ With Client do
+ Begin
+  NomCIE     := '';
+  Adresse    := '';
+  Ville      := '';
+  Province   := '';
+  CodePostal := '';
+  Telephone  := '';
+  NumeroTax  := '';
+ End;
+ { Pr‚paration ‚cran }
+ SauvegardeEcran(Tableau);
+ FixeFormatDouble;
+ FixeCadrePlain(X,Y,X+50,Y+10,$F0);
+ Ecrit(X+1,Y+1,'Nouveau Client',$F0);
+ EcritSpecial(X+1,Y+3,#3#240'Nom compagnie :'#1+
+                      'Adresse :'#1+
+                      'Ville :'#1+
+                      'Province :'#1+
+                      'Code postal :'#1+
+                      'T‚l‚phone :'#1+
+                      'Num‚ro tax :');
+  { Pose les question }
+ With Client do
+ Begin
+10:FixeLocalise(X+17,Y+3,24,NomCIE,Escape);
+  If(Escape = 1)Then Goto Fin;
+  If(Escape = 2)Then Goto 70;
+  If(NomCIE = '')Then Goto 10;
+20:FixeLocalise(X+11,Y+4,30,Adresse,Escape);
+  If(Escape = 1)Then Goto Fin;
+  If(Escape = 2)Then Goto 10;
+  If(Adresse = '')Then Goto 20;
+30:FixeLocalise(X+9,Y+5,20,Ville,Escape);
+  If(Escape = 1)Then Goto Fin;
+  If(Escape = 2)Then Goto 20;
+  If(Ville = '')Then Goto 30;
+40:FixeLocalise(X+12,Y+6,3,Province,Escape);
+  If(Escape = 1)Then Goto Fin;
+  If(Escape = 2)Then Goto 30;
+  If(Province = '')Then Goto 40;
+50:Repeat
+   FixeLocalise(X+15,Y+7,7,CodePostal,Escape);
+   If(Escape = 1)Then Goto Fin;
+   CodePostal := Maj(CodePostal);
+  Until((CodePostal[1] in ['A'..'Z'])and
+        (CodePostal[2] in ['0'..'9'])and
+        (CodePostal[3] in ['A'..'Z'])and
+        (CodePostal[4] in [' ','-'])and
+        (CodePostal[5] in ['0'..'9'])and
+        (CodePostal[6] in ['A'..'Z'])and
+        (CodePostal[7] in ['0'..'9']));
+  If(Escape = 2)Then Goto 40;
+60:Repeat
+   FixeLocalise(X+13,Y+8,8,Telephone,Escape);
+   If(Escape = 1)Then Goto Fin;
+  Until(((Length(Telephone)=8)and
+        (Telephone[1] in ['0'..'9'])and
+        (Telephone[2] in ['0'..'9'])and
+        (Telephone[3] in ['0'..'9'])and
+        (Telephone[4] in ['-',' '])and
+        (Telephone[5] in ['0'..'9'])and
+        (Telephone[6] in ['0'..'9'])and
+        (Telephone[7] in ['0'..'9'])and
+        (Telephone[8] in ['0'..'9'])));
+  If(Escape = 2)Then Goto 50;
+70:FixeLocalise(X+14,Y+9,15,NumeroTax,Escape);
+  If(Escape = 1)Then Goto Fin;
+  If(Escape = 2)Then Goto 60;
+  If(NumeroTax = '')Then Goto 70;
+ End;
+Fin:NouveauClient := Escape;
+ RestituteEcran(Tableau);
+End;

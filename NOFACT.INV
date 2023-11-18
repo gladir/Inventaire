@@ -1,0 +1,57 @@
+(****************************************************************)
+(*                                                              *)
+(* Description : þ Cette proc‚dure sauve dans le fichier        *)
+(*                 "NFACT.DAT" le num‚ro facture courant qui    *)
+(*                 retourne la valeur dans la variable "NFact", *)
+(*                 situ‚ au d‚but de cette unit‚.               *)
+(*                                                              *)
+(****************************************************************)
+
+Procedure SauveNFact;
+Var Handle  : Integer;
+    Enreg   : NFactType;
+    Tableau : Pointer;
+Begin
+ Enreg.Titre := TitreNFact + #26;
+ Enreg.NFact := NFact;
+ SauveDerniereLigne(Tableau);
+ EcritDerLigne('Ecriture du fichier num‚ro facture en cours...');
+ Repeat
+  Handle := Cree('NFACT.DAT');
+ Until (Handle <> -1);
+ Repeat
+  ModifieEnregistrement(Handle,0,SizeOf(Enreg),Enreg);
+ Until (ErreurFichier = 0);
+ Ferme(Handle);
+ RestitueDerniereLigne(Tableau);
+End;
+
+(****************************************************************)
+(*                                                              *)
+(* Description : þ Cette proc‚dure lit dans le fichier          *)
+(*                 "NFACT.DAT" le num‚ro facture courant.       *)
+(* Note        : þ Si le fichier de donn‚e n'existe pas il est  *)
+(*                 cr‚‚ automatiquement.                        *)
+(*               þ Cette proc‚dure est appeler au lancement du  *)
+(*                 programme et mes la valeur lu dans la        *)
+(*                 variable "NFact" au d‚but de cette unit‚e.   *)
+(*                                                              *)
+(****************************************************************)
+
+Procedure LectureNFact;
+Var Handle  : Integer;
+    Enreg   : NFactType;
+    Tableau : Pointer;
+Begin
+ SauveDerniereLigne(Tableau);
+ EcritDerLigne('Lecture du fichier num‚ro facture en cours...');
+ Handle := Ouvre('NFACT.DAT',0);
+ If(Handle = -1)Then SauveNFact
+  else
+ Begin
+  LitEnregistrement(Handle,0,SizeOf(Enreg),Enreg);
+  Ferme(Handle);
+  NFact := Enreg.NFact;
+ End;
+ RestitueDerniereLigne(Tableau);
+End;

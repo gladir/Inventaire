@@ -1,0 +1,19 @@
+(****************************************************************)
+(*                                                              *)
+(* Description : þ Lecture dernier/ancien facture.              *)
+(*                                                              *)
+(****************************************************************)
+
+Procedure LectureAncienFacture(Facture:FactureType);
+Var Handle  : Integer;
+    Tableau : Pointer;
+Begin
+ SauveDerniereLigne(Tableau);
+ EcritDerLigne('Lecture derniŠre facture en cours...');
+ Repeat Handle := Ouvre('AFACTURE.DAT',0); Until (Handle <> -1);
+ Repeat
+  LitEnregistrement(Handle,0,SizeOf(Facture),Facture);
+ Until (ErreurFichier = 0);
+ Repeat Ferme(Handle); Until (ErreurFichier = 0);
+ RestitueDerniereLigne(Tableau);
+End;
